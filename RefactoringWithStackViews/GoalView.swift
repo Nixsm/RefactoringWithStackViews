@@ -47,6 +47,14 @@ final class GoalView: UIView {
 
     private var goal: Int = 0
 
+    private var stackView = UIStackView()
+    
+    var state: GoalViewState = .empty {
+        didSet {
+            updateState(with: state)
+        }
+    }
+
     // MARK: Lifecycle
     
     override init(frame: CGRect) {
@@ -70,9 +78,7 @@ final class GoalView: UIView {
         setupEmptyGoal()
         setupGoalView()
         setupSuccessView()
-        
-        showGoal(false)
-        showSuccessView(false)
+        setupStackView()
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -80,27 +86,12 @@ final class GoalView: UIView {
     }
     
     // MARK: Public methods
-    
-    func showSuccessView(_ show: Bool) {
-        successView.isHidden = !show
-    }
-    
-    func showEmptyGoal(_ show: Bool) {
-        emptyGoalView.isHidden = !show
-    }
-    
-    func showGoal(_ show: Bool) {
-        goalView.isHidden = !show
-        goalSetLabel.isHidden = !show
-    }
-    
+
     func setProgress(_ progress: Int) {
         setProgress(progress, goal: goal)
         
         if goal != 0 && progress == goal {
-            showGoal(false)
-            showEmptyGoal(false)
-            showSuccessView(true)
+            state = .success
             
             goal = 0
         }
@@ -109,12 +100,40 @@ final class GoalView: UIView {
     func setGoal(_ goal: GoalSize) {
         self.goal = goal.rawValue
         setProgress(0, goal: goal.rawValue)
-        showGoal(true)
-        showEmptyGoal(false)
     }
 
     // MARK: Private methods
     
+    private func updateState(with state: GoalViewState) {
+        stackView.arrangedSubviews.forEach { $0.isHidden = true }
+        goalSetLabel.isHidden = true
+        
+        switch state {
+        case .empty:
+            emptyGoalView.isHidden = false
+        case .goal(let value):
+            goalView.isHidden = false
+            goalSetLabel.isHidden = false
+            setGoal(value)
+        case .success:
+            successView.isHidden = false
+        }
+    }
+    
+    private func setupStackView() {
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        [emptyGoalView, goalView, successView].forEach { stackView.addArrangedSubview($0) }
+        stackView.axis = .vertical
+        
+        addSubview(stackView)
+        
+        NSLayoutConstraint
+            .activate([stackView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
+                       stackView.trailingAnchor.constraint(equalTo: trailingAnchor),
+                       stackView.leadingAnchor.constraint(equalTo: leadingAnchor),
+                       stackView.bottomAnchor.constraint(equalTo: bottomAnchor)])
+    }
+
     private func setupSuccessView() {
         let imageView = UIImageView()
         imageView.image = UIImage(named: "nice-meme")
@@ -129,15 +148,6 @@ final class GoalView: UIView {
                        imageView.bottomAnchor.constraint(equalTo: successView.bottomAnchor),
                        imageView.trailingAnchor.constraint(equalTo: successView.trailingAnchor),
                        imageView.leadingAnchor.constraint(equalTo: successView.leadingAnchor)])
-        
-        addSubview(successView)
-        
-        NSLayoutConstraint
-            .activate([successView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
-                       successView.topAnchor.constraint(equalTo: goalSetLabel.bottomAnchor, constant: 16),
-                       successView.bottomAnchor.constraint(equalTo: bottomAnchor),
-                       successView.trailingAnchor.constraint(equalTo: trailingAnchor),
-                       successView.leadingAnchor.constraint(equalTo: leadingAnchor)])
     }
     
     private func setupGoalView() {
@@ -156,15 +166,6 @@ final class GoalView: UIView {
             .activate([progressLabel.topAnchor.constraint(equalTo: goalTitleLabel.bottomAnchor, constant: 16),
                        progressLabel.centerXAnchor.constraint(equalTo: goalView.centerXAnchor),
                        progressLabel.bottomAnchor.constraint(equalTo: goalView.bottomAnchor, constant: -16)])
-        
-        addSubview(goalView)
-        
-        NSLayoutConstraint
-            .activate([goalView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
-                       goalView.topAnchor.constraint(equalTo: goalSetLabel.bottomAnchor, constant: 16),
-                       goalView.bottomAnchor.constraint(equalTo: bottomAnchor),
-                       goalView.trailingAnchor.constraint(equalTo: trailingAnchor),
-                       goalView.leadingAnchor.constraint(equalTo: leadingAnchor)])
     }
     
     private func setupEmptyGoal() {
@@ -197,14 +198,6 @@ final class GoalView: UIView {
                        optionsStackView.trailingAnchor.constraint(equalTo: emptyGoalView.trailingAnchor, constant: -16),
                        optionsStackView.leadingAnchor.constraint(equalTo: emptyGoalView.leadingAnchor, constant: 16),
                        optionsStackView.bottomAnchor.constraint(equalTo: emptyGoalView.bottomAnchor, constant: -16)])
-        
-        addSubview(emptyGoalView)
-    
-        NSLayoutConstraint
-            .activate([emptyGoalView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
-                       emptyGoalView.bottomAnchor.constraint(equalTo: bottomAnchor),
-                       emptyGoalView.trailingAnchor.constraint(equalTo: trailingAnchor),
-                       emptyGoalView.leadingAnchor.constraint(equalTo: leadingAnchor)])
     }
     
     private func createGoalButton(with size: GoalSize, target: Any?, action: Selector) -> UIButton {
@@ -225,15 +218,15 @@ final class GoalView: UIView {
     // MARK: Obj-c methods
     
     @objc func onSmallGoalTapped() {
-        setGoal(.small)
+        state = .goal(value: .small)
     }
     
     @objc func onMediumGoalTapped() {
-        setGoal(.medium)
+        state = .goal(value: .medium)
     }
     
     @objc func onBigGoalTapped() {
-        setGoal(.big)
+        state = .goal(value: .big)
     }
 }
 
@@ -243,4 +236,8 @@ enum GoalSize: Int {
     var text: String {
         return String(self.rawValue)
     }
+}
+
+enum GoalViewState {
+    case empty, goal(value: GoalSize), success
 }
