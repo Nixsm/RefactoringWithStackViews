@@ -60,10 +60,11 @@ final class GoalView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        [goalSetLabel, titleLabel].forEach { $0.translatesAutoresizingMaskIntoConstraints = false }
-        addSubview(titleLabel)
-        addSubview(goalSetLabel)
-        
+        [goalSetLabel, titleLabel].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            addSubview($0)
+        }
+
         titleLabel.text = "Clicking goal"
         
         NSLayoutConstraint
@@ -79,8 +80,10 @@ final class GoalView: UIView {
         setupGoalView()
         setupSuccessView()
         setupStackView()
+        
+        defer { state = .empty }
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -122,9 +125,13 @@ final class GoalView: UIView {
     
     private func setupStackView() {
         stackView.translatesAutoresizingMaskIntoConstraints = false
-        [emptyGoalView, goalView, successView].forEach { stackView.addArrangedSubview($0) }
         stackView.axis = .vertical
         
+        [emptyGoalView, goalView, successView].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            stackView.addArrangedSubview($0)
+        }
+
         addSubview(stackView)
         
         NSLayoutConstraint
@@ -139,8 +146,7 @@ final class GoalView: UIView {
         imageView.image = UIImage(named: "nice-meme")
         imageView.contentMode = .scaleAspectFill
         
-        [successView, imageView].forEach { $0?.translatesAutoresizingMaskIntoConstraints = false }
-        
+        imageView.translatesAutoresizingMaskIntoConstraints = false
         successView.addSubview(imageView)
 
         NSLayoutConstraint
@@ -153,10 +159,10 @@ final class GoalView: UIView {
     private func setupGoalView() {
         setProgress(0)
 
-        [goalView, goalTitleLabel, progressLabel].forEach { $0.translatesAutoresizingMaskIntoConstraints = false }
-        
-        goalView.addSubview(goalTitleLabel)
-        goalView.addSubview(progressLabel)
+        [goalTitleLabel, progressLabel].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            goalView.addSubview($0)
+        }
         
         NSLayoutConstraint
             .activate([goalTitleLabel.topAnchor.constraint(equalTo: goalView.topAnchor, constant: 16),
@@ -183,10 +189,10 @@ final class GoalView: UIView {
         optionsStackView.spacing = 16
         optionsStackView.distribution = .equalSpacing
 
-        [emptyGoalView, emptyGoalTitleLabel, optionsStackView].forEach { $0.translatesAutoresizingMaskIntoConstraints = false }
-        
-        emptyGoalView.addSubview(emptyGoalTitleLabel)
-        emptyGoalView.addSubview(optionsStackView)
+        [emptyGoalTitleLabel, optionsStackView].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            emptyGoalView.addSubview($0)
+        }
 
         NSLayoutConstraint
             .activate([emptyGoalTitleLabel.topAnchor.constraint(equalTo: emptyGoalView.topAnchor, constant: 16),
