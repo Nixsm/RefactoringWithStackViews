@@ -29,7 +29,7 @@ class ViewController: UIViewController {
     private lazy var clickButton: UIButton = {
         let button = UIButton()
         button.addTarget(self, action: #selector(onClickTapped), for: .touchUpInside)
-        button.setTitle("Click me", for: [])
+        button.setTitle("Tap me", for: [])
         button.setTitleColor(.black, for: [])
         
         return button

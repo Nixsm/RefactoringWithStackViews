@@ -65,7 +65,7 @@ final class GoalView: UIView {
             addSubview($0)
         }
 
-        titleLabel.text = "Clicking goal"
+        titleLabel.text = "Tapping goal"
         
         NSLayoutConstraint
             .activate([titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 16),
@@ -176,7 +176,7 @@ final class GoalView: UIView {
     
     private func setupEmptyGoal() {
         let emptyGoalTitleLabel = UILabel()
-        emptyGoalTitleLabel.text = "You have no goal, you can set a goal below! Setting a goal can help you click more and turn you into a professional clicker!"
+        emptyGoalTitleLabel.text = "You have no goal, you can set a goal below! Setting a goal can help you tap more and turn you into a professional tapper!"
         emptyGoalTitleLabel.numberOfLines = 0
         emptyGoalTitleLabel.textColor = .black
         
